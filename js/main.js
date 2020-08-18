@@ -1,4 +1,8 @@
 const GenesisForm = {
+    catalog: {
+        rooms: {},
+        doodads: {},
+    },
     init: function() {
         this.bind();
     },
@@ -47,13 +51,86 @@ const GenesisForm = {
             e.preventDefault();
             self.exportJson();
         });
+
+        $('.tabs-input').on('change', function(e) {
+            const panel = $(this).data('panel');
+            $('.panel').hide();
+            $("#" + panel).show();
+            GridForms.init();
+        });
+
+        $(document).on('change', '.fieldset-master', function(e) {
+            self._updateSelects();
+        });
+
+        $('#rooms_select').on('change', function(e) {
+            if ($(this).val() == "") {
+                self.showAllRooms();
+            } else {
+                self.showOnlyRoom($(this).val());
+            }
+        });
+
+        $('#doodads_select').on('change', function(e) {
+            if ($(this).val() == "") {
+                self.showAllDoodads();
+            } else {
+                self.showOnlyDoodad($(this).val());
+            }
+        });
+    },
+    showAllRooms: function() {
+        for (var id in this.catalog.rooms) {
+            $(this.catalog.rooms[id]).show();
+        }
+        GridForms.init();
+    },
+    hideAllRooms: function() {
+        for (var id in this.catalog.rooms) {
+            $(this.catalog.rooms[id]).hide();
+        }
+    },
+    showOnlyRoom: function(id) {
+        this.hideAllRooms();
+        $(this.catalog.rooms[id]).show();
+        GridForms.init();
+    },
+    showAllDoodads: function() {
+        for (var id in this.catalog.doodads) {
+            $(this.catalog.doodads[id]).show();
+        }
+        GridForms.init();
+    },
+    hideAllDoodads: function() {
+        for (var id in this.catalog.doodads) {
+            $(this.catalog.doodads[id]).hide();
+        }
+    },
+    showOnlyDoodad: function(id) {
+        this.hideAllDoodads();
+        $(this.catalog.doodads[id]).show();
+        GridForms.init();
+    },
+    makeId: function(obj_type) {
+        return obj_type + "_" + Date.now();
     },
     addRoom: function(interactive) {
         var newRoom = $(RoomForm).appendTo('#rooms_container');
-        GridForms.init();
+        const room_id = this.makeId('room');
+        $(newRoom).data('id', room_id);
+        $(newRoom).data('category', 'rooms');
+        this.catalog.rooms[room_id] = newRoom;
+        this._updateSelects();
+
         if (interactive) {
+            if ($('#rooms_select').val() != "") {
+                this.hideAllRooms();
+                newRoom.show();
+                $('#rooms_select').val(doodad_id);
+            }
             this.scrollTo(newRoom);
             newRoom.find('.focus').focus();
+            GridForms.init();
         }
         return newRoom;
     },
@@ -75,10 +152,21 @@ const GenesisForm = {
     },
     addDoodad: function(interactive) {
         var newDoodad = $(DoodadForm).appendTo('#doodads_container');
-        GridForms.init();
+        const doodad_id = this.makeId('doodad');
+        $(newDoodad).data('id', doodad_id);
+        $(newDoodad).data('category', 'doodads');
+        this.catalog.doodads[doodad_id] = newDoodad;
+        this._updateSelects();
+
         if (interactive) {
+            if ($('#doodads_select').val() != "") {
+                this.hideAllDoodads();
+                newDoodad.show();
+                $('#doodads_select').val(doodad_id);
+            }
             this.scrollTo(newDoodad);
             newDoodad.find('.focus').focus();
+            GridForms.init();
         }
         return newDoodad;
     },
@@ -91,7 +179,20 @@ const GenesisForm = {
         return newDoodadInteraction;
     },
     removeSubform: function(el) {
-        $(el).parents('.sub-form').eq(0).slideUp(200, function(){$(this).remove()});
+        const subform = $(el).parents('.sub-form').eq(0);
+        delete this.catalog[subform.data('category')][subform.data('id')];
+        this._updateSelects();
+
+        // Revert back to showing all
+        if (subform.data('category') == 'rooms') {
+            $('#rooms_select').val('');
+            this.showAllRooms();
+        } else {
+            $('#doodads_select').val('');
+            this.showAllDoodads();
+        }
+
+        subform.slideUp(200, function(){$(this).remove()});
     },
     removeSubformItem: function(el) {
         $(el).parents('.sub-form-item').eq(0).slideUp(200, function(){$(this).remove()});
@@ -117,6 +218,27 @@ const GenesisForm = {
     _clearLoadingMessage: function() {
         $('#load_message').text('');
     },
+    _updateSelects: function() {
+        const $rs = $('#rooms_select');
+        const $ds = $('#doodads_select');
+
+        const selected_room = $rs.val();
+        const selected_doodad = $ds.val();
+
+        $rs.html('<option value="">--</option>');
+        for (var id in this.catalog.rooms) {
+            slug = this.catalog.rooms[id].find('[name=room_slug]').val();
+            $rs.append('<option value="' + id + '">' + slug + '</option>');
+        }
+        $rs.val(selected_room);
+
+        $ds.html('<option value="">--</option>');
+        for (var id in this.catalog.doodads) {
+            slug = this.catalog.doodads[id].find('[name=doodad_slug]').val();
+            $ds.append('<option value="' + id + '">' + slug + '</option>');
+        }
+        $ds.val(selected_doodad);
+    },
     loadJson: function(content) {
         const self = this;
         $('.js-load-json').attr('disabled', 'disabled').addClass('running');
@@ -135,6 +257,7 @@ const GenesisForm = {
 
         setTimeout(function() {
             self.setFormData(puzzle);
+            self._updateSelects();
         }, 10);
     },
     resetForm: function() {
@@ -145,6 +268,8 @@ const GenesisForm = {
         this.set('exitRoomSlug', '');
         this.set('validationOnly', true);
         $('.sub-form').remove();
+
+        this.catalog = {rooms:{}, doodads:{}};
     },
     setFormData: function(puzzle) {
         this.resetForm();
@@ -250,7 +375,6 @@ const Puzzle = {
         doodadInteraction: 0
     },
     serialize: function(formData) {
-        console.log(formData);
         var puzzle = {
             slug: "",
             name: "",
@@ -276,7 +400,9 @@ const Puzzle = {
             } else if (field.name.startsWith("doodad_")) {
                 this._attachDoodadField(puzzle, field);
             } else {
-                puzzle[field.name] = field.value;
+                if (field.name != "tabs") {
+                    puzzle[field.name] = field.value;
+                }
             }
         }
 
@@ -351,16 +477,16 @@ jQuery(function($) {
 });
 
 const RoomForm = `
-<fieldset class="sub-form">
-    <legend></legend>
+<fieldset class="sub-form js-id">
+    <legend class="master"></legend>
     <div class="sub-form-bd">
         <div data-row-span="8">
             <div data-field-span="2">
                 <label class="required">Room slug</label>
-                <input type="text" name="room_slug" class="focus">
+                <input type="text" name="room_slug" class="focus fieldset-master">
             </div>
             <div data-field-span="6">
-                <label class="with-remove"><span class="required">Room Description</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form">Remove room</a></span></label>
+                <label class="with-remove"><span class="required">Room Description</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form" tabindex="-1">Remove room</a></span></label>
                 <textarea name="room_description" rows="4"></textarea>
             </div>
         </div>
@@ -389,7 +515,7 @@ const RoomDoodadForm = `
             </select>
         </div>
         <div data-field-span="9">
-            <label title="Message that is displayed to the adventurer if they inspect this doodad (while not carrying it)." class="with-remove"><span class="required">Look message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item">X</a></span></label>
+            <label title="Message that is displayed to the adventurer if they inspect this doodad (while not carrying it)." class="with-remove"><span class="required">Look message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item" tabindex="-1">X</a></span></label>
             <textarea name="room_doodad_lookMessage"></textarea>
         </div>
     </div>
@@ -415,7 +541,7 @@ const RoomExitForm = `
             <input type="text" name="room_exit_exitRoomSlug">
         </div>
         <div data-field-span="9">
-            <label title="Message that is displayed to the adventurer if they look in this direction" class="with-remove"><span class="required">Look message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item">X</a></span></label>
+            <label title="Message that is displayed to the adventurer if they look in this direction" class="with-remove"><span class="required">Look message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item" tabindex="-1">X</a></span></label>
             <textarea name="room_exit_lookMessage"></textarea>
         </div>
     </div>
@@ -451,15 +577,15 @@ const RoomExitForm = `
 
 const DoodadForm = `
 <fieldset class="sub-form">
-    <legend></legend>
+    <legend class="master"></legend>
     <div class="sub-form-bd sub-form-bd_alt">
         <div data-row-span="8">
             <div data-field-span="2">
                 <label class="required">Doodad slug</label>
-                <input type="text" name="doodad_slug" class="focus">
+                <input type="text" name="doodad_slug" class="focus fieldset-master">
             </div>
             <div data-field-span="6">
-                <label class="with-remove"><span class="required">Inventory message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form">Remove doodad</a></span></label>
+                <label class="with-remove"><span class="required">Inventory message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form" tabindex="-1">Remove doodad</a></span></label>
                 <textarea name="doodad_inventoryMessage" rows="3"></textarea>
             </div>
         </div>
@@ -487,7 +613,7 @@ const DoodadInteractionForm = `
             </select>
         </div>
         <div data-field-span="10">
-            <label title="" class="with-remove"><span>Success message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item">X</a></span></label>
+            <label title="" class="with-remove"><span>Success message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item" tabindex="-1">X</a></span></label>
             <textarea name="doodad_interaction_successMessage"></textarea>
         </div>
     </div>

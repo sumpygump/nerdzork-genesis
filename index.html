@@ -86,14 +86,34 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="vr section-rooms">
-                                <h2>Rooms <a href="#" class="btn btn_sm js-add-room">Add room</a></h2>
-                                <div id="rooms_container"></div>
+                            <div class="tabs">
+                                <div class="tab">
+                                    <input name="tabs" type="radio" id="tab-1" checked="checked" data-panel="panel-1" class="tabs-input"/>
+                                    <label for="tab-1" class="label">Rooms</label>
+                                </div>
+                                <div class="tab">
+                                    <input name="tabs" type="radio" id="tab-2" data-panel="panel-2" class="tabs-input"/>
+                                    <label for="tab-2" class="label">Doodads</label>
+                                </div>
+                            </div>
+                            <div class="panel" id="panel-1">
+                                <div class="vr section-rooms">
+                                    <div class="section-btns">
+                                        <a href="#" class="btn js-add-room">Add room</a>
+                                        <select id="rooms_select"></select>
+                                    </div>
+                                    <div id="rooms_container"></div>
+                                </div>
                             </div>
 
-                            <div class="vr section-doodads">
-                                <h2>Doodads <a href="#" class="btn btn_sm js-add-doodad">Add doodad</a></h2>
-                                <div id="doodads_container"></div>
+                            <div class="panel" id="panel-2" style="display:none;">
+                                <div class="vr section-doodads">
+                                    <div class="section-btns">
+                                        <a href="#" class="btn js-add-doodad">Add doodad</a>
+                                        <select id="doodads_select"></select>
+                                    </div>
+                                    <div id="doodads_container"></div>
+                                </div>
                             </div>
                         </form>
                     </div>
