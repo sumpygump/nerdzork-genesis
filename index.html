@@ -43,7 +43,10 @@
 
                 <div class="infobox">
                     <div class="infobox-hd">
-                        <h2 class="hdg_4">Puzzle Definition</h2>
+                        <div class="buttons buttons_sb">
+                            <h2 class="hdg_4">Puzzle Definition</h2>
+                            <div><a href="#" class="btn js-export-puzzle">Export puzzle</a></div>
+                        </div>
                     </div>
                     <div class="infobox-bd">
                         <form class="grid-form">
@@ -51,27 +54,27 @@
                                 <legend>Puzzle Details</legend>
                                 <div data-row-span="2">
                                     <div data-field-span="1">
-                                        <label>Name</label>
+                                        <label class="required">Name</label>
                                         <input type="text" name="name">
                                     </div>
                                     <div data-field-span="1">
-                                        <label>Slug</label>
+                                        <label class="required">Slug</label>
                                         <input type="text" name="slug">
                                     </div>
                                 </div>
                                 <div data-row-span="1">
                                     <div data-field-span="1">
-                                        <label>Description</label>
+                                        <label class="required">Description</label>
                                         <textarea name="description"></textarea>
                                     </div>
                                 </div>
                                 <div data-row-span="3">
                                     <div data-field-span="1">
-                                        <label>Entrance room slug</label>
+                                        <label class="required">Entrance room slug</label>
                                         <input type="text" name="entranceRoomSlug">
                                     </div>
                                     <div data-field-span="1">
-                                        <label>Exit room slug</label>
+                                        <label class="required">Exit room slug</label>
                                         <input type="text" name="exitRoomSlug">
                                     </div>
                                     <div data-field-span="1">
@@ -84,12 +87,12 @@
                                 </div>
                             </fieldset>
                             <div class="vr section-rooms">
-                                <h2>Rooms <a href="#" class="btn btn_sm js-add-room">Add</a></h2>
+                                <h2>Rooms <a href="#" class="btn btn_sm js-add-room">Add room</a></h2>
                                 <div id="rooms_container"></div>
                             </div>
 
                             <div class="vr section-doodads">
-                                <h2>Doodads <a href="#" class="btn btn_sm js-add-doodad">Add</a></h2>
+                                <h2>Doodads <a href="#" class="btn btn_sm js-add-doodad">Add doodad</a></h2>
                                 <div id="doodads_container"></div>
                             </div>
                         </form>

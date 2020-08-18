@@ -141,8 +141,22 @@ h2 {
     align-items: center;
 }
 
+.buttons_sb {
+    width: 100%;
+    justify-content: space-between;
+}
+
 #load_message {
     padding-left: 1rem;
+}
+
+/* ---------------------------------------------------------------------
+ Form
+------------------------------------------------------------------------ */
+span.required:after,
+label.required:after {
+    content: " *";
+    color: red;
 }
 
 /* ---------------------------------------------------------------------
