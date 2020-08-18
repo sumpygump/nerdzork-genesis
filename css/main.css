@@ -212,6 +212,41 @@ label.required:after {
 }
 
 /* ---------------------------------------------------------------------
+ Hint
+------------------------------------------------------------------------ */
+.hint {
+    display: inline-block;
+    text-decoration: none;
+    color: #333333;
+    font-size: 12px;
+    background-color: #d7c826;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    cursor: pointer;
+    text-align: center;
+    border-bottom: 1px solid #b6aa20;
+    border-right: 1px solid #b6aa20;
+}
+
+.hint:hover {
+    background-color: #e5db6c;
+}
+
+.hint:active {
+    border-top: 1px solid #d7c826;
+    border-left: 1px solid #d7c826;
+    border-bottom: none;
+    border-right: none;
+}
+
+.hint_up {
+    position: absolute;
+    top: 0;
+    right: 4px;
+}
+
+/* ---------------------------------------------------------------------
  Section
 ------------------------------------------------------------------------ */
 .section-btns {
@@ -246,6 +281,10 @@ label.required:after {
 
 .grid-form input[type="text"], .grid-form input[type="email"], .grid-form input[type="number"], .grid-form input[type="password"], .grid-form input[type="search"], .grid-form input[type="tel"], .grid-form input[type="url"], .grid-form input[type="color"], .grid-form input[type="date"], .grid-form input[type="datetime"], .grid-form input[type="datetime-local"], .grid-form input[type="month"], .grid-form input[type="time"], .grid-form input[type="week"], .grid-form textarea, .grid-form select {
     font-size: 16px;
+}
+
+[data-field-span] {
+    position: relative;
 }
 
 /* ---------------------------------------------------------------------

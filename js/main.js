@@ -78,6 +78,25 @@ const GenesisForm = {
                 self.showOnlyDoodad($(this).val());
             }
         });
+
+        $(document).on('change', '[data-related]', function(e) {
+            self._updateRelationHints();
+        });
+        $(document).on('click', '.hint', function(e) {
+            const rel = $(this).siblings('input');
+            if (rel.data('related') == 'room_slug') {
+                const newRoom = self.addRoom(false);
+                newRoom.find('[name=room_slug]').val(rel.val());
+                newRoom.hide();
+            }
+            if (rel.data('related') == 'doodad_slug') {
+                const newDoodad = self.addDoodad(false);
+                newDoodad.find('[name=doodad_slug]').val(rel.val());
+                newDoodad.hide();
+            }
+            $(this).hide();
+            self._updateSelects();
+        });
     },
     showAllRooms: function() {
         for (var id in this.catalog.rooms) {
@@ -110,6 +129,63 @@ const GenesisForm = {
         this.hideAllDoodads();
         $(this.catalog.doodads[id]).show();
         GridForms.init();
+    },
+    _updateRelationHints: function() {
+        // Gather all the current slugs
+        roomSlugs = [];
+        for (var id in this.catalog.rooms) {
+            var slug = $(this.catalog.rooms[id]).find('[name=room_slug]').val();
+            roomSlugs.push(slug);
+        }
+        doodadSlugs = [];
+        for (var id in this.catalog.doodads) {
+            var slug = $(this.catalog.doodads[id]).find('[name=doodad_slug]').val();
+            doodadSlugs.push(slug);
+        }
+
+        // Check relations in room exits and room doodads
+        for (var id in this.catalog.rooms) {
+            var rels = $(this.catalog.rooms[id]).find('[data-related=room_slug]');
+            rels.each(function() {
+                var hint = $(this).siblings('.hint');
+                if ($(this).val() !== "" && !roomSlugs.includes($(this).val())) {
+                    hint.show();
+                } else {
+                    hint.hide();
+                }
+            });
+            var rels = $(this.catalog.rooms[id]).find('[data-related=doodad_slug]');
+            rels.each(function() {
+                var hint = $(this).siblings('.hint');
+                if ($(this).val() !== "" && !doodadSlugs.includes($(this).val())) {
+                    hint.show();
+                } else {
+                    hint.hide();
+                }
+            });
+        }
+
+        // Check relations in doodad interactions
+        for (var id in this.catalog.doodads) {
+            var rels = $(this.catalog.doodads[id]).find('[data-related=room_slug]');
+            rels.each(function() {
+                var hint = $(this).siblings('.hint');
+                if ($(this).val() !== "" && !roomSlugs.includes($(this).val())) {
+                    hint.show();
+                } else {
+                    hint.hide();
+                }
+            });
+            var rels = $(this.catalog.doodads[id]).find('[data-related=doodad_slug]');
+            rels.each(function() {
+                var hint = $(this).siblings('.hint');
+                if ($(this).val() !== "" && !doodadSlugs.includes($(this).val())) {
+                    hint.show();
+                } else {
+                    hint.hide();
+                }
+            });
+        }
     },
     makeId: function(obj_type) {
         return obj_type + "_" + Date.now();
@@ -182,6 +258,7 @@ const GenesisForm = {
         const subform = $(el).parents('.sub-form').eq(0);
         delete this.catalog[subform.data('category')][subform.data('id')];
         this._updateSelects();
+        this._updateRelationHints();
 
         // Revert back to showing all
         if (subform.data('category') == 'rooms') {
@@ -258,6 +335,7 @@ const GenesisForm = {
         setTimeout(function() {
             self.setFormData(puzzle);
             self._updateSelects();
+            self._updateRelationHints();
         }, 10);
     },
     resetForm: function() {
@@ -505,7 +583,8 @@ const RoomDoodadForm = `
     <div data-row-span="12">
         <div data-field-span="2">
             <label class="required" title="Slug referring to a doodad to be placed in this room.">Doodad slug</label>
-            <input type="text" name="room_doodad_doodadSlug" class="focus">
+            <input type="text" name="room_doodad_doodadSlug" class="focus" data-related="doodad_slug">
+            <div class="hint" style="display:none;">Slug doesn't exist. Create?</div>
         </div>
         <div data-field-span="1">
             <label class="required" title="Whether it is possible for an adventurer to take this doodad and place in their inventory.">Is gettable</label>
@@ -538,7 +617,8 @@ const RoomExitForm = `
         </div>
         <div data-field-span="2">
             <label class="required" title="Slug of the room to which this exit goes to">Exit room slug</label>
-            <input type="text" name="room_exit_exitRoomSlug">
+            <input type="text" name="room_exit_exitRoomSlug" data-related="room_slug">
+            <div class="hint" style="display:none;">Slug doesn't exist. Create?</div>
         </div>
         <div data-field-span="9">
             <label title="Message that is displayed to the adventurer if they look in this direction" class="with-remove"><span class="required">Look message</span><span><a href="#" class="btn btn_sm btn_danger js-remove-sub-form-item" tabindex="-1">X</a></span></label>
@@ -548,11 +628,13 @@ const RoomExitForm = `
     <div data-row-span="8">
         <div data-field-span="3">
             <label title="">Visibility doodad slug</label>
-            <input type="text" name="room_exit_visibilityDoodadSlug">
+            <div class="hint hint_up" style="display:none;">Slug doesn't exist. Create?</div>
+            <input type="text" name="room_exit_visibilityDoodadSlug" data-related="doodad_slug">
         </div>
         <div data-field-span="3">
             <label title="">Required doodad slug</label>
-            <input type="text" name="room_exit_requiredDoodadSlug">
+            <div class="hint hint_up" style="display:none;">Slug doesn't exist. Create?</div>
+            <input type="text" name="room_exit_requiredDoodadSlug" data-related="doodad_slug">
         </div>
         <div data-field-span="2">
             <label title="">Move fail kills</label>
@@ -630,7 +712,8 @@ const DoodadInteractionForm = `
     <div data-row-span="8">
         <div data-field-span="2">
             <label>Required doodad slug</label>
-            <input type="text" name="doodad_interaction_requiredDoodadSlug">
+            <input type="text" name="doodad_interaction_requiredDoodadSlug" data-related="doodad_slug">
+            <div class="hint hint_up" style="display:none;">Slug doesn't exist. Create?</div>
         </div>
         <div data-field-span="2">
             <label title="Whether the required doodad must be already used to be successful">Required doodad already used</label>
@@ -641,11 +724,13 @@ const DoodadInteractionForm = `
         </div>
         <div data-field-span="2">
             <label>Success spawn doodad slug</label>
-            <input type="text" name="doodad_interaction_successSpawnDoodadSlug">
+            <input type="text" name="doodad_interaction_successSpawnDoodadSlug" data-related="doodad_slug">
+            <div class="hint hint_up" style="display:none;">Slug doesn't exist. Create?</div>
         </div>
         <div data-field-span="2">
             <label>Success teleport room slug</label>
-            <input type="text" name="doodad_interaction_successTeleportRoomSlug">
+            <input type="text" name="doodad_interaction_successTeleportRoomSlug" data-related="room_slug">
+            <div class="hint hint_up" style="display:none;">Slug doesn't exist. Create?</div>
         </div>
     </div>
 </div>
