@@ -33,6 +33,9 @@ const GenesisForm = {
             self.removeSubformItem(this);
         });
         $('.js-load-json').on('click', function(e) {
+            if($(this).attr('disabled')) {
+                return false;
+            }
             e.preventDefault();
             self.loadJson($('#json_input').val());
         });
@@ -69,14 +72,60 @@ const GenesisForm = {
     removeSubformItem: function(el) {
         $(el).parents('.sub-form-item').eq(0).slideUp(400, function(){$(this).remove()});
     },
+    _finishedLoadingMessage: function(message, should_auto_clear) {
+        setTimeout(function() {
+            $('.js-load-json').removeAttr('disabled').removeClass('running');
+            $('#load_message').text(message);
+        }, 500);
+
+        if (should_auto_clear) {
+            const self = this;
+            setTimeout(function() {
+                self._clearLoadingMessage();
+            }, 5000);
+        }
+    },
+    _clearLoadingMessage: function() {
+        $('#load_message').text('');
+    },
     loadJson: function(content) {
-        puzzle = JSON.parse(content);
+        const self = this;
+        $('.js-load-json').attr('disabled', 'disabled').addClass('running');
+        this._clearLoadingMessage();
+
+        if (content.trim() == "") {
+            this._finishedLoadingMessage("No JSON data to parse.");
+            return false;
+        }
+        try {
+            puzzle = JSON.parse(content);
+        } catch (e) {
+            this._finishedLoadingMessage("Error loading JSON data. " + e);
+            return false;
+        }
+
+        setTimeout(function() {
+            self.setFormData(puzzle);
+        }, 10);
+    },
+    resetForm: function() {
+        this.set('name', '');
+        this.set('slug', '');
+        this.set('description', '');
+        this.set('entranceRoomSlug', '');
+        this.set('exitRoomSlug', '');
+        this.set('validationOnly', true);
+        $('.sub-form').remove();
+    },
+    setFormData: function(puzzle) {
+        this.resetForm();
 
         this.set('name', puzzle.name);
         this.set('slug', puzzle.slug);
         this.set('description', puzzle.description);
         this.set('entranceRoomSlug', puzzle.entranceRoomSlug);
         this.set('exitRoomSlug', puzzle.exitRoomSlug);
+        this.set('validationOnly', puzzle.validationOnly == true ? "true" : "false");
 
         for (var index in puzzle.rooms) {
             room = puzzle.rooms[index];
@@ -130,6 +179,8 @@ const GenesisForm = {
                 this.setIn(inf, 'doodad_interaction_successTeleportRoomSlug', interaction.successTeleportRoomSlug);
             }
         }
+
+        this._finishedLoadingMessage("Successfully loaded JSON data.", true);
     },
     set: function(name, value) {
         $('[name=' + name + ']').val(value);
