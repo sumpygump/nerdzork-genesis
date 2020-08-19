@@ -379,13 +379,17 @@ const GenesisForm = {
 
             for (var eindex in room.exits) {
                 exit = room.exits[eindex];
+                moveFailKillsValue = "false";
+                if (exit.moveFailKills) {
+                    moveFailKillsValue = "true";
+                }
                 ef = this.addRoomExit(rf.find('.js-add-room-exit'));
                 this.setIn(ef, 'room_exit_direction', exit.direction);
                 this.setIn(ef, 'room_exit_exitRoomSlug', exit.exitRoomSlug);
                 this.setIn(ef, 'room_exit_lookMessage', exit.lookMessage);
                 this.setIn(ef, 'room_exit_visibilityDoodadSlug', exit.visibilityDoodadSlug);
                 this.setIn(ef, 'room_exit_requiredDoodadSlug', exit.requiredDoodadSlug);
-                this.setIn(ef, 'room_exit_moveFailKills', exit.moveFailKills);
+                this.setIn(ef, 'room_exit_moveFailKills', moveFailKillsValue);
                 this.setIn(ef, 'room_exit_failMessage', exit.failMessage);
                 this.setIn(ef, 'room_exit_publicFailMessage', exit.publicFailMessage);
             }
